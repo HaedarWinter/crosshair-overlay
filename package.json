@@ -5,7 +5,7 @@
   "main": "src/main/main.js",
   "scripts": {
     "start": "electron .",
-    "postinstall": "cd native/overlay-utils && npm install && npm run build",
+    "postinstall": "node -e \"if(process.platform==='darwin'){require('child_process').execSync('npm install && npm run build',{cwd:'native/overlay-utils',stdio:'inherit'})}else{console.log('postinstall: skipping native mac build on '+process.platform)}\"",
     "build": "electron-builder",
     "build:mac": "electron-builder --mac",
     "build:mac:dmg": "electron-builder --mac dmg",
