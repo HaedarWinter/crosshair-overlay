@@ -1,0 +1,21 @@
+{
+  "name": "overlay-utils",
+  "version": "1.0.0",
+  "private": true,
+  "description": "macOS-only native helper: NSWindowCollectionBehavior for fullscreen overlay",
+  "main": "build/Release/overlay-utils.node",
+  "scripts": {
+    "install": "node -e \"if(process.platform==='darwin'){require('child_process').execSync('node-gyp rebuild',{stdio:'inherit'})}else{console.log('overlay-utils: skipping native build on '+process.platform)}\"",
+    "build": "node -e \"if(process.platform==='darwin'){require('child_process').execSync('node-gyp rebuild',{stdio:'inherit'})}else{console.log('overlay-utils: skipping native build on '+process.platform)}\"",
+    "clean": "node-gyp clean"
+  },
+  "dependencies": {
+    "node-addon-api": "^8.0.0"
+  },
+  "devDependencies": {
+    "node-gyp": "^10.0.0"
+  },
+  "os": [
+    "darwin"
+  ]
+}

@@ -1,0 +1,22 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+
+# Logs
+*.log
+npm-debug.log*
+
+# macOS
+.DS_Store
+
+# Electron builder cache
+*.blockmap
+
+# Local env
+.env
+
+# Native build output (rebuilt via postinstall on each machine)
+native/overlay-utils/build/
+native/overlay-utils/node_modules/

@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Crosshair Overlay Settings</title>
+  <link rel="stylesheet" href="settings.css">
+</head>
+
+<body>
+  <div class="window-container">
+    <!-- Titlebar -->
+    <header class="titlebar" id="titlebar">
+      <div class="titlebar-drag">
+        <div class="app-brand">
+          <img src="../../assets/winter.jpeg" class="author-avatar" alt="Winter" draggable="false">
+          <span class="app-name">Crosshair Overlay</span>
+          <span class="app-version">v2.0</span>
+        </div>
+      </div>
+      <!-- Winter Aespo watermark -->
+      <div class="titlebar-author">
+        <img src="../../assets/winter.jpeg" class="author-avatar" alt="Winter" draggable="false">
+        <span class="author-name">winter aespo</span>
+      </div>
+      <div class="titlebar-actions" id="win-controls">
+        <button id="btn-win-exit" class="win-btn win-btn-exit" title="Exit App (Quit completely)">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round">
+            <path d="M18.36 6.64a9 9 0 1 1-12.72 0" />
+            <line x1="12" y1="2" x2="12" y2="12" />
+          </svg>
+        </button>
+        <button id="btn-win-minimize" class="win-btn" title="Minimize">
+          <svg width="10" height="1" viewBox="0 0 10 1">
+            <rect width="10" height="1" fill="currentColor" />
+          </svg>
+        </button>
+        <button id="btn-win-maximize" class="win-btn" title="Maximize / Restore">
+          <svg width="10" height="10" viewBox="0 0 10 10">
+            <rect width="8" height="8" x="1" y="1" fill="none" stroke="currentColor" stroke-width="1.2" />
+          </svg>
+        </button>
+        <button id="btn-win-close" class="win-btn win-btn-close" title="Close">
+          <svg width="10" height="10" viewBox="0 0 10 10">
+            <path d="M1 1L9 9M9 1L1 9" stroke="currentColor" stroke-width="1.2" />
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Content Layout -->
+    <div class="main-body">
+      <!-- Left Column: Live Preview Area (340px) -->
+      <aside class="preview-panel">
+        <div class="preview-card">
+          <div class="preview-viewport" id="preview-viewport">
+            <div class="preview-wallpaper" id="preview-wallpaper"></div>
+            <div class="preview-grid-overlay"></div>
+            <canvas id="preview-canvas" width="308" height="270"></canvas>
+
+            <div class="zoom-controls">
+              <button class="zoom-btn active" data-zoom="1">1×</button>
+              <button class="zoom-btn" data-zoom="2">2×</button>
+              <button class="zoom-btn" data-zoom="4">4×</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="overlay-toggle-card">
+          <div class="toggle-info">
+            <span class="toggle-title">Show Overlay</span>
+            <span class="toggle-desc">Toggle in-game overlay</span>
+          </div>
+          <div class="toggle-action">
+            <kbd class="hotkey-badge" id="badge-overlay-hotkey">F8</kbd>
+            <label class="switch">
+              <input type="checkbox" id="toggle-overlay-active" checked>
+              <span class="slider"></span>
+            </label>
+          </div>
+        </div>
+
+        <button class="exit-app-card" id="btn-exit-app" title="Quit Crosshair Overlay completely">
+          <span class="exit-icon-wrap">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round">
+              <path d="M18.36 6.64a9 9 0 1 1-12.72 0" />
+              <line x1="12" y1="2" x2="12" y2="12" />
+            </svg>
+          </span>
+          <span class="toggle-info">
+            <span class="toggle-title">Exit App</span>
+            <span class="toggle-desc">Quit completely</span>
+          </span>
+        </button>
+
+        <div class="preview-meta">
+          <div class="meta-row">
+            <span class="meta-label">Position</span>
+            <span class="meta-val" id="meta-position">0, 0 (Center)</span>
+          </div>
+          <div class="meta-row">
+            <span class="meta-label">Shape</span>
+            <span class="meta-val" id="meta-shape">Cross</span>
+          </div>
+        </div>
+
+        <div class="author-badge-subtle" title="Crosshair Overlay by winter aespo">
+          <img src="../../assets/winter.jpeg" class="author-badge-avatar" alt="Winter" draggable="false">
+          <div class="author-badge-texts">
+            <span class="author-badge-title">winter aespo</span>
+            <span class="author-badge-desc">Crosshair Overlay v2.0</span>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Right Column: Settings Tabs -->
+      <main class="settings-panel">
+        <!-- Tab Navigation -->
+        <nav class="tabs-nav">
+          <div class="tabs-list">
+            <button class="tab-btn active" data-tab="tab-crosshair">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="8" x2="12" y2="16" />
+                <line x1="8" y1="12" x2="16" y2="12" />
+              </svg>
+              <span>Crosshair</span>
+            </button>
+            <button class="tab-btn" data-tab="tab-position">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="2" y="3" width="20" height="14" rx="2" />
+                <line x1="8" y1="21" x2="16" y2="21" />
+                <line x1="12" y1="17" x2="12" y2="21" />
+              </svg>
+              <span>Position & Hotkeys</span>
+            </button>
+            <button class="tab-btn" data-tab="tab-appearance">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+              </svg>
+              <span>Appearance & Wallpaper</span>
+            </button>
+          </div>
+        </nav>
+
+        <!-- Tab Contents Container -->
+        <div class="tabs-content-area" id="tabs-content-area">
+
+          <!-- TAB 1: CROSSHAIR -->
+          <section class="tab-pane active" id="tab-crosshair">
+            <!-- Preset Selector -->
+            <div class="section-group">
+              <div class="section-title-row">
+                <label class="section-title">Presets</label>
+                <div class="preset-action-group">
+                  <button type="button" class="btn-text-action" id="btn-import-preset" title="Import preset from code">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                      <polyline points="7 10 12 15 17 10" />
+                      <line x1="12" y1="15" x2="12" y2="3" />
+                    </svg>
+                    <span>Import</span>
+                  </button>
+                  <button type="button" class="btn-text-action" id="btn-export-preset"
+                    title="Export current preset as code">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                      <polyline points="17 8 12 3 7 8" />
+                      <line x1="12" y1="3" x2="12" y2="15" />
+                    </svg>
+                    <span>Export</span>
+                  </button>
+                  <button type="button" class="btn-text-action" id="btn-random-preset" title="Generate random stylish crosshair">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <polyline points="16 3 21 3 21 8" />
+                      <line x1="4" y1="20" x2="21" y2="3" />
+                      <polyline points="21 16 21 21 16 21" />
+                      <line x1="15" y1="15" x2="21" y2="21" />
+                      <line x1="4" y1="4" x2="9" y2="9" />
+                    </svg>
+                    <span>Random</span>
+                  </button>
+                  <button type="button" class="btn-text-action" id="btn-open-save-preset">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+                      <polyline points="17 21 17 13 7 13 7 21" />
+                      <polyline points="7 3 7 8 15 8" />
+                    </svg>
+                    <span>Save</span>
+                  </button>
+                </div>
+              </div>
+              <div class="preset-row">
+                <div class="select-wrapper preset-select-wrap">
+                  <select id="select-preset" class="custom-select">
+                    <!-- Populated by settings.js -->
+                  </select>
+                </div>
+                <button type="button" class="btn-icon btn-danger-icon" id="btn-delete-preset"
+                  title="Delete custom preset" style="display: none;">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="3 6 5 6 21 6" />
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <!-- Shape Selector -->
+            <div class="section-group">
+              <label class="section-title">Shape Style</label>
+              <div class="segmented-control" id="shape-selector">
+                <button class="seg-btn active" data-shape="cross">Cross</button>
+                <button class="seg-btn" data-shape="dot">Dot</button>
+                <button class="seg-btn" data-shape="circle">Circle</button>
+                <button class="seg-btn" data-shape="box">Box</button>
+                <button class="seg-btn" data-shape="t-shape">T-Shape</button>
+              </div>
+            </div>
+
+            <!-- Dimensions -->
+            <div class="section-group">
+              <label class="section-title">Geometry</label>
+
+              <div class="control-row" id="row-rotation" title="Rotate crosshair between 0° and 360°. Set to 45° for an X-Crosshair.">
+                <div class="row-label">
+                  <span>Rotation Angle</span>
+                  <span class="row-hint">0° (Default) to 360°</span>
+                </div>
+                <div class="row-inputs">
+                  <div class="quick-angle-buttons">
+                    <button type="button" class="btn-angle-chip active" data-angle="0">0°</button>
+                    <button type="button" class="btn-angle-chip" data-angle="45">45° (X)</button>
+                    <button type="button" class="btn-angle-chip" data-angle="90">90°</button>
+                  </div>
+                  <input type="range" id="range-rotation" min="0" max="360" value="0" class="slider-control">
+                  <div class="num-unit-wrap">
+                    <input type="number" id="num-rotation" min="0" max="360" value="0" class="num-control">
+                    <span class="unit-symbol">°</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="control-row" id="row-size" title="Length of each arm (or diameter for Circle/Dot)">
+                <div class="row-label">
+                  <div class="label-with-action">
+                    <span>Size</span>
+                    <button type="button" class="btn-unlink-chip" id="btn-unlink-size" title="Unlink horizontal and vertical arm lengths">
+                      <span id="unlink-icon">🔗</span>
+                      <span id="unlink-label">Linked</span>
+                    </button>
+                  </div>
+                  <span class="row-hint">Arm length / diameter</span>
+                </div>
+                <div class="row-inputs" id="size-linked-inputs">
+                  <input type="range" id="range-size" min="1" max="100" value="24" class="slider-control">
+                  <input type="number" id="num-size" min="1" max="100" value="24" class="num-control">
+                </div>
+                <div class="row-inputs-col hidden" id="size-unlinked-inputs">
+                  <div class="unlinked-pair">
+                    <span class="axis-badge">H</span>
+                    <input type="range" id="range-size-x" min="1" max="100" value="24" class="slider-control">
+                    <input type="number" id="num-size-x" min="1" max="100" value="24" class="num-control">
+                  </div>
+                  <div class="unlinked-pair">
+                    <span class="axis-badge">V</span>
+                    <input type="range" id="range-size-y" min="1" max="100" value="24" class="slider-control">
+                    <input type="number" id="num-size-y" min="1" max="100" value="24" class="num-control">
+                  </div>
+                </div>
+              </div>
+
+              <div class="control-row" id="row-thickness"
+                title="Width of each crosshair line. Minimum 0.5px for ultra-fine lines.">
+                <div class="row-label">
+                  <span>Thickness</span>
+                  <span class="row-hint">Line width in pixels</span>
+                </div>
+                <div class="row-inputs">
+                  <input type="range" id="range-thickness" min="0.5" max="20" step="0.5" value="2"
+                    class="slider-control">
+                  <input type="number" id="num-thickness" min="0.5" max="20" step="0.5" value="2" class="num-control">
+                </div>
+              </div>
+
+              <div class="control-row" id="row-corner-radius"
+                title="Rounds the corners of Box shape arms. Has no effect on other shapes.">
+                <div class="row-label">
+                  <span>Corner Radius</span>
+                  <span class="row-hint">Box shape only</span>
+                </div>
+                <div class="row-inputs">
+                  <input type="range" id="range-corner-radius" min="0" max="20" step="1" value="0"
+                    class="slider-control">
+                  <input type="number" id="num-corner-radius" min="0" max="20" step="1" value="0" class="num-control">
+                </div>
+              </div>
+
+              <div class="control-row" id="row-gap"
+                title="Empty space between the center point and where the arms begin. Increase to create a gap for better center visibility.">
+                <div class="row-label">
+                  <span>Center Gap</span>
+                  <span class="row-hint">Space before arms start</span>
+                </div>
+                <div class="row-inputs">
+                  <input type="range" id="range-gap" min="0" max="50" value="4" class="slider-control">
+                  <input type="number" id="num-gap" min="0" max="50" value="4" class="num-control">
+                </div>
+              </div>
+
+              <div class="control-row" id="row-opacity"
+                title="Transparency of the entire crosshair. Lower values make it semi-transparent.">
+                <div class="row-label">
+                  <span>Opacity</span>
+                  <span class="row-hint">Overall transparency</span>
+                </div>
+                <div class="row-inputs">
+                  <input type="range" id="range-opacity" min="1" max="100" value="100" class="slider-control">
+                  <div class="num-unit-wrap">
+                    <input type="number" id="num-opacity" min="1" max="100" value="100" class="num-control">
+                    <span class="unit-symbol">%</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Arms Toggle -->
+            <div class="section-group" id="group-arms">
+              <label class="section-title">Arms Control</label>
+              <div class="arms-grid">
+                <label class="arm-item">
+                  <input type="checkbox" id="arm-top" checked>
+                  <span class="arm-box">Top</span>
+                </label>
+                <label class="arm-item">
+                  <input type="checkbox" id="arm-left" checked>
+                  <span class="arm-box">Left</span>
+                </label>
+                <label class="arm-item">
+                  <input type="checkbox" id="arm-bottom" checked>
+                  <span class="arm-box">Bottom</span>
+                </label>
+                <label class="arm-item">
+                  <input type="checkbox" id="arm-right" checked>
+                  <span class="arm-box">Right</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Color Palette -->
+            <div class="section-group">
+              <label class="section-title">Color</label>
+              <div class="color-row">
+                <div class="color-picker-wrap">
+                  <input type="color" id="picker-color" value="#00ffcc" class="native-color-picker">
+                  <span class="color-swatch-display" id="swatch-color" style="background-color: #00ffcc;"></span>
+                </div>
+                <input type="text" id="hex-color" value="#00ffcc" maxlength="9" class="hex-input">
+                <div class="palette-presets">
+                  <button class="swatch-quick" data-color="#00ffcc" style="background:#00ffcc;" title="Cyan"></button>
+                  <button class="swatch-quick" data-color="#00ff66" style="background:#00ff66;" title="Green"></button>
+                  <button class="swatch-quick" data-color="#ff3366" style="background:#ff3366;" title="Red"></button>
+                  <button class="swatch-quick" data-color="#ffff00" style="background:#ffff00;" title="Yellow"></button>
+                  <button class="swatch-quick" data-color="#ff00ff" style="background:#ff00ff;"
+                    title="Magenta"></button>
+                  <button class="swatch-quick" data-color="#ffffff" style="background:#ffffff;" title="White"></button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Outline Card -->
+            <div class="card-group">
+              <div class="card-header">
+                <div class="card-header-text">
+                  <span class="card-title">Outer Outline</span>
+                  <span class="card-subtitle">Adds high-contrast border around lines</span>
+                </div>
+                <label class="switch">
+                  <input type="checkbox" id="toggle-outline" checked>
+                  <span class="slider"></span>
+                </label>
+              </div>
+              <div class="card-body" id="outline-options">
+                <div class="control-row">
+                  <div class="row-label">
+                    <span>Outline Thickness</span>
+                  </div>
+                  <div class="row-inputs">
+                    <input type="range" id="range-outline-width" min="1" max="5" value="1" class="slider-control">
+                    <input type="number" id="num-outline-width" min="1" max="5" value="1" class="num-control">
+                  </div>
+                </div>
+                <div class="control-row">
+                  <div class="row-label">
+                    <span>Outline Color</span>
+                  </div>
+                  <div class="row-inputs">
+                    <div class="color-picker-wrap">
+                      <input type="color" id="picker-outline-color" value="#000000" class="native-color-picker">
+                      <span class="color-swatch-display" id="swatch-outline-color"
+                        style="background-color: #000000;"></span>
+                    </div>
+                    <input type="text" id="hex-outline-color" value="#000000" maxlength="9" class="hex-input">
+                  </div>
+                </div>
+                <div class="control-row" title="Transparency of outline">
+                  <div class="row-label">
+                    <span>Outline Opacity</span>
+                  </div>
+                  <div class="row-inputs">
+                    <input type="range" id="range-outline-opacity" min="0" max="100" value="100" class="slider-control">
+                    <div class="num-unit-wrap">
+                      <input type="number" id="num-outline-opacity" min="0" max="100" value="100" class="num-control">
+                      <span class="unit-symbol">%</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Center Dot Card -->
+            <div class="card-group">
+              <div class="card-header">
+                <div class="card-header-text">
+                  <span class="card-title">Center Dot</span>
+                  <span class="card-subtitle">Draws precise focal dot in the center</span>
+                </div>
+                <label class="switch">
+                  <input type="checkbox" id="toggle-dot">
+                  <span class="slider"></span>
+                </label>
+              </div>
+              <div class="card-body hidden" id="dot-options">
+                <div class="control-row">
+                  <div class="row-label">
+                    <span>Dot Diameter</span>
+                  </div>
+                  <div class="row-inputs">
+                    <input type="range" id="range-dot-size" min="1" max="10" value="4" class="slider-control">
+                    <input type="number" id="num-dot-size" min="1" max="10" value="4" class="num-control">
+                  </div>
+                </div>
+                <div class="control-row" title="Center dot opacity">
+                  <div class="row-label">
+                    <span>Dot Opacity</span>
+                  </div>
+                  <div class="row-inputs">
+                    <input type="range" id="range-dot-opacity" min="0" max="100" value="100" class="slider-control">
+                    <div class="num-unit-wrap">
+                      <input type="number" id="num-dot-opacity" min="0" max="100" value="100" class="num-control">
+                      <span class="unit-symbol">%</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Outer Lines Card (Valorant Dual-Layer) -->
+            <div class="card-group" id="group-outer-lines">
+              <div class="card-header">
+                <div class="card-header-text">
+                  <span class="card-title">Outer Lines (Dual-Layer)</span>
+                  <span class="card-subtitle">Secondary outer reticle / brackets</span>
+                </div>
+                <label class="switch">
+                  <input type="checkbox" id="toggle-outer-lines">
+                  <span class="slider"></span>
+                </label>
+              </div>
+              <div class="card-body hidden" id="outer-lines-options">
+                <div class="control-row" title="Length of secondary outer lines">
+                  <div class="row-label">
+                    <span>Outer Length</span>
+                    <span class="row-hint">Arm length</span>
+                  </div>
+                  <div class="row-inputs">
+                    <input type="range" id="range-outer-size" min="1" max="50" value="4" class="slider-control">
+                    <input type="number" id="num-outer-size" min="1" max="50" value="4" class="num-control">
+                  </div>
+                </div>
+                <div class="control-row" title="Thickness of outer lines">
+                  <div class="row-label">
+                    <span>Outer Thickness</span>
+                    <span class="row-hint">Line width in px</span>
+                  </div>
+                  <div class="row-inputs">
+                    <input type="range" id="range-outer-thickness" min="0.5" max="20" step="0.5" value="2" class="slider-control">
+                    <input type="number" id="num-outer-thickness" min="0.5" max="20" step="0.5" value="2" class="num-control">
+                  </div>
+                </div>
+                <div class="control-row" title="Distance from center for outer lines">
+                  <div class="row-label">
+                    <span>Outer Offset (Gap)</span>
+                    <span class="row-hint">Distance from center</span>
+                  </div>
+                  <div class="row-inputs">
+                    <input type="range" id="range-outer-gap" min="0" max="60" value="10" class="slider-control">
+                    <input type="number" id="num-outer-gap" min="0" max="60" value="10" class="num-control">
+                  </div>
+                </div>
+                <div class="control-row" title="Transparency of outer lines">
+                  <div class="row-label">
+                    <span>Outer Opacity</span>
+                    <span class="row-hint">Layer transparency</span>
+                  </div>
+                  <div class="row-inputs">
+                    <input type="range" id="range-outer-opacity" min="0" max="100" value="50" class="slider-control">
+                    <div class="num-unit-wrap">
+                      <input type="number" id="num-outer-opacity" min="0" max="100" value="50" class="num-control">
+                      <span class="unit-symbol">%</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- TAB 2: POSITION & HOTKEYS -->
+          <section class="tab-pane" id="tab-position">
+            <!-- Display Selector -->
+            <div class="section-group">
+              <label class="section-title">Target Display</label>
+              <div class="select-wrapper">
+                <select id="select-monitor" class="custom-select"></select>
+              </div>
+            </div>
+
+            <!-- Offset Adjustments -->
+            <div class="section-group">
+              <div class="section-header-row">
+                <label class="section-title">Screen Offsets</label>
+                <button id="btn-reset-center" class="btn-secondary btn-sm">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10" />
+                    <line x1="12" y1="2" x2="12" y2="6" />
+                    <line x1="12" y1="18" x2="12" y2="22" />
+                    <line x1="2" y1="12" x2="6" y2="12" />
+                    <line x1="18" y1="12" x2="22" y2="12" />
+                  </svg>
+                  Reset Center
+                </button>
+              </div>
+
+              <div class="control-row">
+                <div class="row-label">
+                  <span>Horizontal Offset (X)</span>
+                  <span class="row-hint">Negative left, positive right</span>
+                </div>
+                <div class="row-inputs">
+                  <input type="range" id="range-offset-x" min="-200" max="200" value="0" class="slider-control">
+                  <input type="number" id="num-offset-x" min="-200" max="200" value="0" class="num-control">
+                </div>
+              </div>
+
+              <div class="control-row">
+                <div class="row-label">
+                  <span>Vertical Offset (Y)</span>
+                  <span class="row-hint">Negative up, positive down</span>
+                </div>
+                <div class="row-inputs">
+                  <input type="range" id="range-offset-y" min="-200" max="200" value="0" class="slider-control">
+                  <input type="number" id="num-offset-y" min="-200" max="200" value="0" class="num-control">
+                </div>
+              </div>
+            </div>
+
+            <!-- Hotkeys Config -->
+            <div class="section-group">
+              <label class="section-title">Global Shortcuts</label>
+              <p class="section-desc">Shortcuts are active globally, even while focused in full screen or borderless
+                games.</p>
+
+              <div class="hotkey-item">
+                <div class="hotkey-item-info">
+                  <span class="hotkey-name">Toggle Settings Window</span>
+                  <span class="hotkey-desc">Show or hide this settings menu</span>
+                </div>
+                <div class="hotkey-action-wrap">
+                  <kbd class="hotkey-display" id="hotkey-disp-settings">⌘⇧S</kbd>
+                  <button class="btn-record-hotkey" id="btn-record-settings">Rebind</button>
+                </div>
+              </div>
+
+              <div class="hotkey-item">
+                <div class="hotkey-item-info">
+                  <span class="hotkey-name">Toggle Crosshair Overlay</span>
+                  <span class="hotkey-desc">Show or hide crosshair on screen</span>
+                </div>
+                <div class="hotkey-action-wrap">
+                  <kbd class="hotkey-display" id="hotkey-disp-overlay">⌘⇧X</kbd>
+                  <button class="btn-record-hotkey" id="btn-record-overlay">Rebind</button>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- TAB 3: APPEARANCE & WALLPAPER -->
+          <section class="tab-pane" id="tab-appearance">
+            <div class="section-group">
+              <div class="section-header-row">
+                <div>
+                  <label class="section-title">Preview Wallpaper</label>
+                  <p class="section-desc">Test crosshair visibility and contrast against various game backgrounds.</p>
+                </div>
+                <button id="btn-upload-wallpaper" class="btn-secondary btn-sm">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                    <polyline points="17 8 12 3 7 8" />
+                    <line x1="12" y1="3" x2="12" y2="15" />
+                  </svg>
+                  Upload Custom
+                </button>
+              </div>
+
+              <!-- Preset Wallpapers Grid -->
+              <div class="wallpaper-grid" id="wallpaper-grid">
+                <button class="wallpaper-thumb active" data-preset="dark">
+                  <div class="thumb-preview wp-dark"></div>
+                  <span class="thumb-label">Dark Gradient</span>
+                </button>
+                <button class="wallpaper-thumb" data-preset="field-bright">
+                  <div class="thumb-preview wp-field"></div>
+                  <span class="thumb-label">Bright Field</span>
+                </button>
+                <button class="wallpaper-thumb" data-preset="sky-bright">
+                  <div class="thumb-preview wp-sky"></div>
+                  <span class="thumb-label">Bright Sky</span>
+                </button>
+                <button class="wallpaper-thumb" data-preset="city-busy">
+                  <div class="thumb-preview wp-city"></div>
+                  <span class="thumb-label">City Street</span>
+                </button>
+                <button class="wallpaper-thumb" data-preset="interior-dark">
+                  <div class="thumb-preview wp-interior"></div>
+                  <span class="thumb-label">Dark Interior</span>
+                </button>
+                <button class="wallpaper-thumb" data-preset="black">
+                  <div class="thumb-preview wp-black"></div>
+                  <span class="thumb-label">Pure Black</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Wallpaper Filters -->
+            <div class="section-group">
+              <label class="section-title">Background Filters</label>
+
+              <div class="control-row">
+                <div class="row-label">
+                  <span>Background Blur</span>
+                  <span class="row-hint">Gaussian blur applied to preview background</span>
+                </div>
+                <div class="row-inputs">
+                  <input type="range" id="range-wp-blur" min="0" max="24" value="0" class="slider-control">
+                  <div class="num-unit-wrap">
+                    <input type="number" id="num-wp-blur" min="0" max="24" value="0" class="num-control">
+                    <span class="unit-symbol">px</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="control-row">
+                <div class="row-label">
+                  <span>Background Dim</span>
+                  <span class="row-hint">Darken background to isolate crosshair</span>
+                </div>
+                <div class="row-inputs">
+                  <input type="range" id="range-wp-dim" min="0" max="80" value="0" class="slider-control">
+                  <div class="num-unit-wrap">
+                    <input type="number" id="num-wp-dim" min="0" max="80" value="0" class="num-control">
+                    <span class="unit-symbol">%</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+        </div>
+      </main>
+    </div>
+
+    <!-- Hotkey Capture Modal / Overlay -->
+    <div class="hotkey-modal hidden" id="hotkey-modal">
+      <div class="modal-card">
+        <div class="modal-icon-pulse">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="2" y="4" width="20" height="16" rx="2" />
+            <line x1="6" y1="8" x2="6" y2="8" />
+            <line x1="10" y1="8" x2="10" y2="8" />
+            <line x1="14" y1="8" x2="14" y2="8" />
+            <line x1="18" y1="8" x2="18" y2="8" />
+            <line x1="6" y1="12" x2="6" y2="12" />
+            <line x1="18" y1="12" x2="18" y2="12" />
+            <line x1="7" y1="16" x2="17" y2="16" />
+          </svg>
+        </div>
+        <h3 class="modal-title" id="modal-hotkey-target">Press any key combination...</h3>
+        <p class="modal-desc">Press your desired hotkey (e.g. F8, or Command+Shift+X). Press Escape to cancel.</p>
+        <div class="modal-current-key" id="modal-captured-key">Listening...</div>
+        <button id="btn-cancel-capture" class="btn-secondary">Cancel</button>
+      </div>
+    </div>
+
+    <!-- Save Preset Modal -->
+    <div class="hotkey-modal hidden" id="preset-modal">
+      <div class="modal-card">
+        <div class="modal-icon-pulse">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+            <polyline points="17 21 17 13 7 13 7 21" />
+            <polyline points="7 3 7 8 15 8" />
+          </svg>
+        </div>
+        <h3 class="modal-title">Save Custom Preset</h3>
+        <p class="modal-desc">Save your current crosshair style as a named preset.</p>
+        <div class="modal-input-group">
+          <input type="text" id="input-preset-name" class="modal-text-input" placeholder="e.g. Valorant Headhunter"
+            maxlength="28" autocomplete="off" />
+        </div>
+        <div class="modal-buttons-row">
+          <button id="btn-cancel-preset" class="btn-secondary">Cancel</button>
+          <button id="btn-confirm-save-preset" class="btn-primary-action">Save Preset</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Export Preset Modal -->
+  <div class="hotkey-modal hidden" id="export-modal">
+    <div class="modal-card">
+      <div class="modal-icon-pulse">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+          <polyline points="17 8 12 3 7 8" />
+          <line x1="12" y1="3" x2="12" y2="15" />
+        </svg>
+      </div>
+      <h3 class="modal-title">Export Preset Code</h3>
+      <p class="modal-desc">Share this code with others to import your crosshair.</p>
+      <div class="modal-code-wrap">
+        <textarea id="export-code-text" class="modal-code-area" readonly></textarea>
+        <button id="btn-copy-code" class="btn-copy-code">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="9" y="9" width="13" height="13" rx="2" />
+            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+          </svg>
+          <span id="copy-btn-label">Copy</span>
+        </button>
+      </div>
+      <button id="btn-close-export" class="btn-secondary" style="width:100%">Close</button>
+    </div>
+  </div>
+
+  <!-- Import Preset Modal -->
+  <div class="hotkey-modal hidden" id="import-modal">
+    <div class="modal-card">
+      <div class="modal-icon-pulse">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+          <polyline points="7 10 12 15 17 10" />
+          <line x1="12" y1="15" x2="12" y2="3" />
+        </svg>
+      </div>
+      <h3 class="modal-title">Import Preset Code</h3>
+      <p class="modal-desc">Paste a crosshair code below to load it.</p>
+      <div class="modal-input-group">
+        <textarea id="import-code-text" class="modal-code-area" placeholder="Paste code here..."></textarea>
+      </div>
+      <p class="modal-error" id="import-error"></p>
+      <div class="modal-buttons-row">
+        <button id="btn-cancel-import" class="btn-secondary">Cancel</button>
+        <button id="btn-confirm-import" class="btn-primary-action">Import</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast notification -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <script src="../shared/draw-crosshair.js"></script>
+  <script src="settings.js"></script>
+</body>
+
+</html>
