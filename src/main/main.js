@@ -194,6 +194,7 @@ let settingsWindow = null;
 let trayIcon = null;
 let isQuitting = false;
 let saveDebounceTimer = null;
+let isFirstRun = false;
 
 // ─── Settings Persistence ─────────────────────────────────────────────────────
 function deepMerge(target, source) {
@@ -340,6 +341,7 @@ function loadSettings() {
         }
       }
     } else {
+      isFirstRun = true;
       settings = { ...defaultSettings, hotkeys: platformHotkeyDefaults() };
     }
   } catch (err) {
@@ -873,6 +875,15 @@ app.whenReady().then(() => {
   // (~40MB) sampai user benar-benar membukanya via hotkey/tray.
   createTray();
   registerHotkeys();
+
+  // First install: langsung buka settings agar user paham app-nya jalan.
+  // (Default-nya settings lazy agar hemat ~40MB, tapi first-run tanpa GUI
+  // kelihatan seperti "tidak terjadi apa-apa" di Windows.)
+  if (isFirstRun) {
+    setTimeout(() => {
+      try { showSettingsWindow(); } catch { }
+    }, 800);
+  }
 
   if (IS_MAC && app.dock) {
     try {
