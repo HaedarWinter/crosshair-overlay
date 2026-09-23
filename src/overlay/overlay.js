@@ -7,14 +7,33 @@ let settings = {};
 let width = window.innerWidth || 200;
 let height = window.innerHeight || 200;
 
-// ─── Offscreen cache ────────────────────────────────────────────────────
-// Crosshair is static: full drawCrosshair() path runs ONLY on settings
-// change. Resize / display updates only blit the cached bitmap (one
-// drawImage), so idle CPU is zero — no rAF, no setInterval, no polling.
-let cachedCanvas = null;
-let cachedCssSize = 0;
-let cachedSettings = null;
-let displayDebounce = null;
+  // ─── Offscreen cache ────────────────────────────────────────────────────
+  // Crosshair is static: full drawCrosshair() path runs ONLY on settings
+  // change. Resize / display updates only blit the cached bitmap (one
+  // drawImage), so idle CPU is zero — no rAF, no setInterval, no polling.
+  let cachedCanvas = null;
+  let cachedCssSize = 0;
+  let cachedSettings = null;
+  let displayDebounce = null;
+  
+  // Selective cache invalidation: which properties change shape geometry?
+  const GEOMETRY_KEYS = new Set([
+    'shape', 'size', 'sizeX', 'sizeY', 'unlinkSize', 'rotation',
+    'thickness', 'gap', 'cornerRadius', 'arms',
+    'outline.enabled', 'outline.width',
+    'centerDot.enabled', 'centerDot.size',
+    'outerLines.enabled', 'outerLines.size', 'outerLines.thickness', 'outerLines.gap'
+  ]);
+  
+  // Opacity-only changes don't require cache rebuild
+  const OPACITY_KEYS = new Set([
+    'opacity', 'outline.opacity', 'centerDot.opacity', 'outerLines.opacity'
+  ]);
+  
+  // Color-only changes need cache rebuild (affects fills/strokes)
+  const COLOR_KEYS = new Set([
+    'color', 'outline.color', 'outerLines.color'
+  ]);
 
 // Mirror of main.js getOverlayWindowSize(): minimal square that fits the
 // crosshair at any rotation, so the cache stays small (<600px).

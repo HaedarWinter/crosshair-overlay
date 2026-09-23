@@ -25,7 +25,7 @@
   // Preview & Canvas
   const previewViewport = document.getElementById('preview-viewport');
   const previewCanvas = document.getElementById('preview-canvas');
-  const previewCtx = previewCanvas.getContext('2d', { alpha: true });
+  const previewCtx = previewCanvas.getContext('2d', { alpha: true, willReadFrequently: false });
   const previewWallpaper = document.getElementById('preview-wallpaper');
   const metaPosition = document.getElementById('meta-position');
   const metaShape = document.getElementById('meta-shape');
@@ -246,23 +246,39 @@
     cur[keys[keys.length - 1]] = val;
   }
 
-  // ─── Real-Time Settings Update (RAF Throttled for 60/144 FPS) ─────────────
-  let rafPending = false;
+  // ─── Real-Time Settings Update (throttled: min 33ms gap) ──────────────────
+  // Slider drags fire `input` many times/sec. IPC + overlay cache rebuild on
+  // every event wastes main-process time; coalesce to ~30 FPS while keeping
+  // drag feel. Immediate mode bypasses the throttle (commit points like
+  // preset load / toggle).
+  let syncPending = false;
+  let lastSyncTime = 0;
+  const SYNC_MIN_INTERVAL_MS = 33;
   function syncAndSave(immediate = false) {
     renderPreview();
     updateMetaDisplays();
 
     if (immediate) {
+      lastSyncTime = performance.now();
+      syncPending = false;
       api.updateSettings(settings);
       return;
     }
 
-    if (!rafPending) {
-      rafPending = true;
-      requestAnimationFrame(() => {
-        api.updateSettings(settings);
-        rafPending = false;
-      });
+    if (syncPending) return;
+    syncPending = true;
+
+    const now = performance.now();
+    const wait = Math.max(0, SYNC_MIN_INTERVAL_MS - (now - lastSyncTime));
+    const flush = () => {
+      syncPending = false;
+      lastSyncTime = performance.now();
+      api.updateSettings(settings);
+    };
+    if (wait === 0) {
+      flush();
+    } else {
+      setTimeout(flush, wait);
     }
   }
 
