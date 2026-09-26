@@ -30,9 +30,13 @@ contextBridge.exposeInMainWorld('api', {
     return () => ipcRenderer.removeListener('settings-updated', handler);
   },
 
-  onDisplayUpdated: (callback) => {
-    const handler = (_event, info) => callback(info);
-    ipcRenderer.on('display-updated', handler);
-    return () => ipcRenderer.removeListener('display-updated', handler);
-  }
+  onUpdateAvailable: (callback) => {
+    const handler = (_event, data) => callback(data);
+    ipcRenderer.on('update:available', handler);
+    return () => ipcRenderer.removeListener('update:available', handler);
+  },
+
+  // Update check
+  checkUpdate: () => ipcRenderer.invoke('update:check'),
+  openUpdateDownload: (url) => ipcRenderer.invoke('update:open-download', url)
 });

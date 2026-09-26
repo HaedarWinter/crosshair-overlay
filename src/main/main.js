@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, globalShortcut, screen, dialog, nativeImage, Tray, Menu } = require('electron');
+const { app, BrowserWindow, ipcMain, globalShortcut, screen, dialog, nativeImage, Tray, Menu, shell } = require('electron');
 const path = require('path');
 const fs = require('fs');
 
@@ -917,6 +917,16 @@ app.whenReady().then(() => {
     applyOverlayBounds();
   });
 
+  // Silent update check after 10s
+  setTimeout(async () => {
+    try {
+      const res = await checkForUpdates();
+      if (res.hasUpdate && settingsWindow && !settingsWindow.isDestroyed()) {
+        settingsWindow.webContents.send('update:available', res);
+      }
+    } catch { }
+  }, 10000);
+
   app.on('activate', () => {
     // macOS: reopen settings on dock icon click (lazy-create)
     showSettingsWindow();
@@ -1132,5 +1142,123 @@ ipcMain.handle('validate-hotkey', (_event, accelerator) => {
     return { valid: false, reason: 'Hotkey not available' };
   } catch (err) {
     return { valid: false, reason: err.message };
+  }
+});
+
+// ─── Application Update Check ────────────────────────────────────────────────
+const UPDATE_REPO = 'HaedarWinter/crosshair-overlay';
+
+function compareSemver(v1, v2) {
+  const parse = (v) => v.replace(/^v/i, '').split('.').map(n => parseInt(n, 10) || 0);
+  const a = parse(v1);
+  const b = parse(v2);
+  for (let i = 0; i < Math.max(a.length, b.length); i++) {
+    const num1 = a[i] || 0;
+    const num2 = b[i] || 0;
+    if (num1 > num2) return 1;
+    if (num1 < num2) return -1;
+  }
+  return 0;
+}
+
+function fetchLatestRelease() {
+  return new Promise((resolve, reject) => {
+    const https = require('https');
+    const options = {
+      hostname: 'api.github.com',
+      path: `/repos/${UPDATE_REPO}/releases/latest`,
+      headers: {
+        'User-Agent': 'Crosshair-Overlay-App'
+      },
+      timeout: 8000
+    };
+
+    const req = https.get(options, (res) => {
+      if (res.statusCode === 404) {
+        return resolve({ noReleaseFound: true });
+      }
+      if (res.statusCode !== 200) {
+        return reject(new Error(`GitHub API HTTP ${res.statusCode}`));
+      }
+      let data = '';
+      res.on('data', chunk => { data += chunk; });
+      res.on('end', () => {
+        try {
+          resolve(JSON.parse(data));
+        } catch (e) {
+          reject(e);
+        }
+      });
+    });
+
+    req.on('error', reject);
+    req.on('timeout', () => {
+      req.destroy();
+      reject(new Error('Request timed out'));
+    });
+  });
+
+
+}
+
+async function checkForUpdates() {
+  const currentVersion = app.getVersion();
+  
+  // DEBUG: Set env var to force update card for testing
+  if (process.env.DEBUG_UPDATE_CHECK === '1') {
+    return {
+      hasUpdate: true,
+      current: currentVersion,
+      latest: '2.0.1',
+      notes: 'Debug test: forced update card',
+      downloadUrl: 'https://github.com/HaedarWinter/crosshair-overlay/releases/latest',
+      sizeMB: '1.0'
+    };
+  }
+  
+  try {
+    const release = await fetchLatestRelease();
+    if (release.noReleaseFound) {
+      return { hasUpdate: false, current: currentVersion, latest: currentVersion };
+    }
+    const latestVersion = release.tag_name || release.name || currentVersion;
+    const cleanLatest = latestVersion.replace(/^v/i, '');
+    const hasUpdate = compareSemver(cleanLatest, currentVersion) > 0;
+
+    let downloadUrl = release.html_url;
+    let sizeMB = null;
+    if (Array.isArray(release.assets) && release.assets.length > 0) {
+      const ext = process.platform === 'darwin' ? '.dmg' : '.exe';
+      const asset = release.assets.find(a => a.name.endsWith(ext)) || release.assets[0];
+      if (asset) {
+        downloadUrl = asset.browser_download_url || release.html_url;
+        if (asset.size) {
+          sizeMB = (asset.size / (1024 * 1024)).toFixed(1);
+        }
+      }
+    }
+
+    return {
+      hasUpdate,
+      current: currentVersion,
+      latest: cleanLatest,
+      tag: latestVersion,
+      notes: release.body || '',
+      url: release.html_url,
+      downloadUrl,
+      sizeMB
+    };
+  } catch (err) {
+    return { hasUpdate: false, current: currentVersion, error: err.message };
+  }
+}
+
+ipcMain.handle('update:check', async () => {
+  return await checkForUpdates();
+});
+
+ipcMain.handle('update:open-download', async (_event, url) => {
+  if (url && typeof url === 'string' && (url.startsWith('https://') || url.startsWith('http://'))) {
+    await shell.openExternal(url);
   }
 });

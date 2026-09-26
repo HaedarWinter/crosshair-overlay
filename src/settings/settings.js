@@ -88,7 +88,9 @@
   const inputPresetName = document.getElementById('input-preset-name');
   const btnCancelPreset = document.getElementById('btn-cancel-preset');
   const btnConfirmSavePreset = document.getElementById('btn-confirm-save-preset');
-
+  const presetModalTitle = presetModal?.querySelector('.modal-title');
+  const presetModalDesc = presetModal?.querySelector('.modal-desc');
+  const presetModalBtn = presetModal?.querySelector('#btn-confirm-save-preset');
   // Outline
   const toggleOutline = document.getElementById('toggle-outline');
   const outlineOptions = document.getElementById('outline-options');
@@ -162,8 +164,18 @@
   const btnImportPreset = document.getElementById('btn-import-preset');
   const btnRandomPreset = document.getElementById('btn-random-preset');
 
+  // Track which preset is being edited (null = create new)
+  let editingPresetId = null;
+
   // Toast
   const toastContainer = document.getElementById('toast-container');
+
+  // Update Check
+  const btnCheckUpdate = document.getElementById('btn-check-update');
+  const updateCurrentVersion = document.getElementById('update-current-version');
+  const updateStatus = document.getElementById('update-status');
+  const updateStatusContent = document.getElementById('update-status-content');
+  const updateBadge = document.getElementById('update-badge');
 
   // ─── State ─────────────────────────────────────────────────────────────────
   let settings = {
@@ -176,6 +188,7 @@
     unlinkSize: false,
     rotation: 0,
     thickness: 2,
+    skippedVersion: null,
     gap: 4,
     cornerRadius: 0,
     opacity: 100,
@@ -195,7 +208,7 @@
 
   let currentZoom = 1;
   let activeCaptureTarget = null; // 'settings' | 'overlay'
-
+  let isPopulating = false; // Flag to prevent event listener sync during populateUI
   // ─── Formatting Helpers ────────────────────────────────────────────────────
   function formatAcceleratorForDisplay(accelerator) {
     if (!accelerator) return 'None';
@@ -220,7 +233,7 @@
       numberInput.value = val;
       setNestedProp(settings, path, val);
       if (onChange) onChange(val);
-      syncAndSave();
+      if (!isPopulating) syncAndSave();
     });
 
     numberInput.addEventListener('input', () => {
@@ -232,7 +245,7 @@
       slider.value = val;
       setNestedProp(settings, path, val);
       if (onChange) onChange(val);
-      syncAndSave();
+      if (!isPopulating) syncAndSave();
     });
   }
 
@@ -381,6 +394,15 @@
 
   // ─── Populate UI from Settings ─────────────────────────────────────────────
   function populateUI() {
+    isPopulating = true;
+    try {
+      _populateUIInternal();
+    } finally {
+      isPopulating = false;
+    }
+  }
+
+  function _populateUIInternal() {
     // Overlay Toggle
     toggleOverlayActive.checked = !!settings.overlayEnabled;
     const overlayKey = settings.hotkeys?.toggleOverlay;
@@ -465,6 +487,11 @@
     renderPreview();
     updateMetaDisplays();
     populatePresetDropdown();
+
+    // Update Check: display current version
+    if (updateCurrentVersion) {
+      updateCurrentVersion.textContent = '2.0.0';
+    }
   }
 
   // ─── Preset Helpers ────────────────────────────────────────────────────────
@@ -511,6 +538,80 @@
     }
   }
 
+
+  // ─── Update Check State & Helpers ──────────────────────────────────────────
+  let checkUpdating = false;
+
+  function showUpdateStatus(type, message) {
+    updateStatus.style.display = 'block';
+    let icon = '';
+    if (type === 'success') {
+      icon = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>';
+    } else if (type === 'error') {
+      icon = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>';
+    } else if (type === 'info') {
+      icon = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>';
+    }
+    updateStatusContent.innerHTML = `<div class="update-status-msg ${type}">${icon}<span>${message}</span></div>`;
+  }
+
+  function showUpdateAvailable(data) {
+    const html = `
+      <div class="update-avail-card">
+        <div class="update-avail-header">
+          <div class="update-avail-title">Update Available: ${data.latest}</div>
+          ${data.sizeMB ? `<div class="update-avail-size">${data.sizeMB} MB</div>` : ''}
+        </div>
+        ${data.notes ? `<div class="update-notes-preview">${data.notes}</div>` : ''}
+        <div class="update-actions">
+          <button class="btn-update-download" id="btn-update-download">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+            Download
+          </button>
+          <button class="btn-update-skip" id="btn-update-skip">Skip this version</button>
+        </div>
+      </div>
+    `;
+    updateStatus.style.display = 'block';
+    updateStatusContent.innerHTML = html;
+
+    const btnDownload = document.getElementById('btn-update-download');
+    if (btnDownload) {
+      btnDownload.addEventListener('click', () => {
+        api.openUpdateDownload(data.downloadUrl || data.url);
+      });
+    }
+    const btnSkip = document.getElementById('btn-update-skip');
+    if (btnSkip) {
+      btnSkip.addEventListener('click', () => {
+        settings.skippedVersion = data.latest;
+        syncAndSave();
+        updateBadge.style.display = 'none';
+        showUpdateStatus('info', 'You will not be notified about this version again.');
+        setTimeout(() => { updateStatus.style.display = 'none'; }, 2500);
+      });
+    }
+  }
+
+  function handleSilentUpdate(data) {
+    if (data.hasUpdate && data.latest !== settings.skippedVersion) {
+      updateBadge.style.display = 'inline-block';
+    }
+  }
+
+  function handleUpdateResult(data) {
+    if (data.error) {
+      showUpdateStatus('error', 'Check failed: ' + data.error);
+      return;
+    }
+    if (!data.hasUpdate) {
+      updateBadge.style.display = 'none';
+      showUpdateStatus('success', `You are up to date (${data.current})`);
+      return;
+    }
+    updateBadge.style.display = 'inline-block';
+    showUpdateAvailable(data);
+  }
   // ─── Setup Event Listeners ─────────────────────────────────────────────────
   function initListeners() {
     // Window controls
@@ -608,6 +709,9 @@
         if (d.outline) settings.outline = { ...d.outline };
         if (d.centerDot) settings.centerDot = { ...d.centerDot };
         if (d.outerLines) settings.outerLines = { ...d.outerLines };
+        if (d.offset) settings.offset = { ...d.offset };
+
+        editingPresetId = chosen.id;
 
         populateUI();
         syncAndSave(true);
@@ -618,7 +722,24 @@
     // Save Preset Modal
     if (btnOpenSavePreset && presetModal) {
       btnOpenSavePreset.addEventListener('click', () => {
-        inputPresetName.value = '';
+        const presets = settings.presets || [];
+        const currentId = selectPreset ? selectPreset.value : null;
+        const currentPreset = presets.find(p => p.id === currentId);
+
+        if (currentPreset && !currentPreset.builtIn) {
+          editingPresetId = currentPreset.id;
+          inputPresetName.value = currentPreset.name;
+          if (presetModalTitle) presetModalTitle.textContent = 'Update Preset';
+          if (presetModalDesc) presetModalDesc.textContent = `Update "${currentPreset.name}" with your current crosshair settings.`;
+          if (presetModalBtn) presetModalBtn.textContent = 'Update Preset';
+        } else {
+          editingPresetId = null;
+          inputPresetName.value = '';
+          if (presetModalTitle) presetModalTitle.textContent = 'Save Custom Preset';
+          if (presetModalDesc) presetModalDesc.textContent = 'Save your current crosshair style as a named preset.';
+          if (presetModalBtn) presetModalBtn.textContent = 'Save Preset';
+        }
+
         presetModal.classList.remove('hidden');
         setTimeout(() => inputPresetName.focus(), 80);
       });
@@ -635,37 +756,62 @@
         const name = inputPresetName.value.trim();
         if (!name) return;
 
-        const newId = 'user-' + Date.now();
-        const newPreset = {
-          id: newId,
-          name: name,
-          builtIn: false,
-          data: {
-            shape: settings.shape,
-            size: settings.size,
-            sizeX: settings.sizeX,
-            sizeY: settings.sizeY,
-            unlinkSize: !!settings.unlinkSize,
-            rotation: settings.rotation || 0,
-            thickness: settings.thickness,
-            gap: settings.gap,
-            cornerRadius: settings.cornerRadius || 0,
-            opacity: settings.opacity,
-            color: settings.color,
-            arms: { ...settings.arms },
-            outline: { ...settings.outline },
-            centerDot: { ...settings.centerDot },
-            outerLines: { ...(settings.outerLines || {}) }
+        if (editingPresetId) {
+          const p = settings.presets.find(x => x.id === editingPresetId);
+          if (p) {
+            p.name = name;
+            p.data = {
+              shape: settings.shape,
+              size: settings.size,
+              sizeX: settings.sizeX,
+              sizeY: settings.sizeY,
+              unlinkSize: !!settings.unlinkSize,
+              rotation: settings.rotation || 0,
+              thickness: settings.thickness,
+              gap: settings.gap,
+              cornerRadius: settings.cornerRadius || 0,
+              opacity: settings.opacity,
+              color: settings.color,
+              arms: { ...settings.arms },
+              outline: { ...settings.outline },
+              centerDot: { ...settings.centerDot },
+              outerLines: { ...(settings.outerLines || {}) },
+              offset: { ...(settings.offset || { x: 0, y: 0 }) }
+            };
           }
-        };
-
-        if (!Array.isArray(settings.presets)) {
-          settings.presets = [];
+          populatePresetDropdown(editingPresetId);
+        } else {
+          const newId = 'user-' + Date.now();
+          settings.presets = Array.isArray(settings.presets) ? settings.presets : [];
+          settings.presets.push({
+            id: newId,
+            name: name,
+            builtIn: false,
+            data: {
+              shape: settings.shape,
+              size: settings.size,
+              sizeX: settings.sizeX,
+              sizeY: settings.sizeY,
+              unlinkSize: !!settings.unlinkSize,
+              rotation: settings.rotation || 0,
+              thickness: settings.thickness,
+              gap: settings.gap,
+              cornerRadius: settings.cornerRadius || 0,
+              opacity: settings.opacity,
+              color: settings.color,
+              arms: { ...settings.arms },
+              outline: { ...settings.outline },
+              centerDot: { ...settings.centerDot },
+              outerLines: { ...(settings.outerLines || {}) },
+              offset: { ...(settings.offset || { x: 0, y: 0 }) }
+            }
+          });
+          populatePresetDropdown(newId);
         }
-        settings.presets.push(newPreset);
-        populatePresetDropdown(newId);
         syncAndSave(true);
         presetModal.classList.add('hidden');
+        showToast(editingPresetId ? `Preset updated: ${name}` : `Preset saved: ${name}`, 'success');
+        editingPresetId = null;
       };
 
       btnConfirmSavePreset.addEventListener('click', executeSavePreset);
@@ -919,7 +1065,8 @@
           outline: settings.outline,
           centerDot: settings.centerDot,
           outerLines: settings.outerLines,
-          cornerRadius: settings.cornerRadius || 0
+          cornerRadius: settings.cornerRadius || 0,
+          offset: settings.offset || { x: 0, y: 0 }
         };
         const code = btoa(JSON.stringify(exportData));
         exportCodeText.value = code;
@@ -979,6 +1126,7 @@
         if (parsed.outline) settings.outline = { ...parsed.outline };
         if (parsed.centerDot) settings.centerDot = { ...parsed.centerDot };
         if (parsed.outerLines) settings.outerLines = { ...parsed.outerLines };
+        if (parsed.offset) settings.offset = { ...parsed.offset };
         if (parsed.cornerRadius !== undefined) settings.cornerRadius = Number(parsed.cornerRadius);
 
         importModal.classList.add('hidden');
@@ -991,14 +1139,13 @@
     // ─── Random Preset Generator ─────────────────────────────────────────────
     if (btnRandomPreset) {
       btnRandomPreset.addEventListener('click', () => {
-        const shapes = ['cross', 'cross', 'cross', 'dot', 'circle', 'box', 't-shape'];
-        const colors = ['#00ffcc', '#00ff66', '#ff3366', '#ffff00', '#ff00ff', '#ffffff', '#38bdf8', '#fb923c', '#a855f7'];
+        const shapes = ['cross', 'dot', 'circle', 'box', 't-shape'];
         const randomShape = shapes[Math.floor(Math.random() * shapes.length)];
-        const randomColor = colors[Math.floor(Math.random() * colors.length)];
-        const randomSize = Math.floor(Math.random() * 20) + 6;
-        const randomThickness = [1, 1.5, 2, 2.5, 3][Math.floor(Math.random() * 5)];
-        const randomGap = Math.floor(Math.random() * 8) + 1;
-        const randomRotation = Math.random() < 0.25 ? 45 : 0;
+        const randomColor = '#' + Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0');
+        const randomSize = Math.floor(Math.random() * 30) + 10;
+        const randomThickness = Math.floor(Math.random() * 6) + 1;
+        const randomGap = Math.floor(Math.random() * 16);
+        const randomRotation = Math.floor(Math.random() * 8) * 45;
         const hasDot = Math.random() < 0.4;
         const hasOuter = randomShape === 'cross' && Math.random() < 0.35;
 
@@ -1021,8 +1168,33 @@
         showToast('🎲 Random crosshair generated!', 'info');
       });
     }
-  }
+    // Update check button
+    if (btnCheckUpdate) {
+      btnCheckUpdate.addEventListener('click', async () => {
+        if (checkUpdating) return;
+        checkUpdating = true;
+        btnCheckUpdate.disabled = true;
+        btnCheckUpdate.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="animation: spin 1s linear infinite;"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/></svg> Checking...';
+        try {
+          const result = await api.checkUpdate();
+          handleUpdateResult(result);
+        } catch (err) {
+          showUpdateStatus('error', 'Update check failed: ' + (err.message || 'Unknown error'));
+        } finally {
+          checkUpdating = false;
+          btnCheckUpdate.disabled = false;
+          btnCheckUpdate.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/></svg> Check for Updates';
+        }
+      });
+    }
 
+    // Silent update available handler (from main process)
+    if (api.onUpdateAvailable) {
+      api.onUpdateAvailable((result) => {
+        handleSilentUpdate(result);
+      });
+    }
+  }
   // ─── Hotkey Capture Logic ──────────────────────────────────────────────────
   function startHotkeyCapture(target) {
     activeCaptureTarget = target;

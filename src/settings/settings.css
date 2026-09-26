@@ -1345,6 +1345,12 @@ body.is-maximized .window-container {
   opacity: 0.9;
 }
 
+
+/* ─── Spin Animation for Update Spinner ─────────────────────────────── */
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
 /* ─── Reduced Motion ───────────────────────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
   * {
@@ -1463,4 +1469,156 @@ body.is-maximized .window-container {
   min-height: 16px;
   margin: 2px 0;
   text-align: center;
+}
+
+/* ─── Update Card & Badge Styles ───────────────────────────────────── */
+.tab-btn {
+  position: relative;
+}
+
+.update-badge {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  background-color: var(--accent-cyan);
+  border-radius: 50%;
+  margin-left: 4px;
+  box-shadow: 0 0 6px var(--accent-cyan);
+}
+
+.update-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-muted);
+  border-radius: var(--radius-card);
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.update-info {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.update-version-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.update-label {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.update-current {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  font-family: monospace;
+}
+
+.update-status {
+  border-top: 1px solid var(--border-subtle);
+  padding-top: 12px;
+}
+
+.update-status-msg {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.update-status-msg.success {
+  color: var(--accent-green);
+}
+
+.update-status-msg.error {
+  color: var(--accent-red);
+}
+
+.update-status-msg.info {
+  color: var(--text-secondary);
+}
+
+.update-avail-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.update-avail-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.update-avail-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent-cyan);
+}
+
+.update-avail-size {
+  font-size: 12px;
+  color: var(--text-meta);
+}
+
+.update-notes-preview {
+  font-size: 12px;
+  color: var(--text-secondary);
+  background: var(--bg-input);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-input);
+  padding: 8px 10px;
+  max-height: 80px;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+.update-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 2px;
+}
+
+.btn-update-download {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--accent-cyan);
+  color: #000;
+  border: none;
+  border-radius: var(--radius-btn);
+  padding: 6px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity var(--trans-fast);
+}
+
+.btn-update-download:hover {
+  opacity: 0.9;
+}
+
+.btn-update-skip {
+  background: none;
+  border: none;
+  color: var(--text-meta);
+  font-size: 12px;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 0;
+  transition: color var(--trans-fast);
+}
+
+.btn-update-skip:hover {
+  color: var(--text-secondary);
 }

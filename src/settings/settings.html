@@ -141,7 +141,7 @@
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
               </svg>
-              <span>Appearance & Wallpaper</span>
+              <span class="update-badge" id="update-badge" style="display:none;"></span>
             </button>
           </div>
         </nav>
@@ -673,6 +673,28 @@
                     <input type="number" id="num-wp-dim" min="0" max="80" value="0" class="num-control">
                     <span class="unit-symbol">%</span>
                   </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Application Update -->
+            <div class="section-group">
+              <label class="section-title">Application Update</label>
+              <div class="update-card">
+                <div class="update-info">
+                  <div class="update-version-row">
+                    <span class="update-label">Current Version</span>
+                    <span class="update-current" id="update-current-version">2.0.0</span>
+                  </div>
+                  <button class="btn-secondary btn-sm" id="btn-check-update">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/>
+                    </svg>
+                    Check for Updates
+                  </button>
+                </div>
+                <div class="update-status" id="update-status" style="display:none;">
+                  <div class="update-status-content" id="update-status-content"></div>
                 </div>
               </div>
             </div>
